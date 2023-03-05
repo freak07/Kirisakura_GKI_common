@@ -22,6 +22,7 @@
 #include <linux/oom.h>
 #include <linux/tracepoint.h>
 #include <trace/hooks/vendor_hooks.h>
+#include <linux/rwsem.h>
 
 #ifdef __GENKSYMS__
 struct slabinfo;
@@ -43,6 +44,7 @@ struct readahead_control;
 #endif /* __GENKSYMS__ */
 struct cma;
 struct swap_slots_cache;
+struct page_vma_mapped_walk;
 
 DECLARE_RESTRICTED_HOOK(android_rvh_set_skip_swapcache_flags,
 			TP_PROTO(gfp_t *flags),
@@ -148,6 +150,10 @@ DECLARE_HOOK(android_vh_mmap_region,
 DECLARE_HOOK(android_vh_try_to_unmap_one,
 	TP_PROTO(struct vm_area_struct *vma, struct page *page, unsigned long addr, bool ret),
 	TP_ARGS(vma, page, addr, ret));
+DECLARE_HOOK(android_vh_do_page_trylock,
+	TP_PROTO(struct page *page, struct rw_semaphore *sem,
+		bool *got_lock, bool *success),
+	TP_ARGS(page, sem, got_lock, success));
 DECLARE_HOOK(android_vh_drain_all_pages_bypass,
 	TP_PROTO(gfp_t gfp_mask, unsigned int order, unsigned long alloc_flags,
 		int migratetype, unsigned long did_some_progress,
@@ -231,6 +237,9 @@ DECLARE_HOOK(android_vh_get_swap_page,
 	TP_PROTO(struct page *page, swp_entry_t *entry,
 		struct swap_slots_cache *cache, bool *found),
 	TP_ARGS(page, entry, cache, found));
+DECLARE_HOOK(android_vh_madvise_cold_or_pageout,
+	TP_PROTO(struct vm_area_struct *vma, bool *allow_shared),
+	TP_ARGS(vma, allow_shared));
 DECLARE_HOOK(android_vh_page_isolated_for_reclaim,
 	TP_PROTO(struct mm_struct *mm, struct page *page),
 	TP_ARGS(mm, page));
@@ -258,6 +267,16 @@ DECLARE_HOOK(android_vh_set_shmem_page_flag,
 DECLARE_HOOK(android_vh_remove_vmalloc_stack,
 	TP_PROTO(struct vm_struct *vm),
 	TP_ARGS(vm));
+DECLARE_HOOK(android_vh_test_clear_look_around_ref,
+	TP_PROTO(struct page *page),
+	TP_ARGS(page));
+DECLARE_HOOK(android_vh_look_around_migrate_page,
+	TP_PROTO(struct page *old_page, struct page *new_page),
+	TP_ARGS(old_page, new_page));
+DECLARE_HOOK(android_vh_look_around,
+	TP_PROTO(struct page_vma_mapped_walk *pvmw, struct page *page,
+		struct vm_area_struct *vma, int *referenced),
+	TP_ARGS(pvmw, page, vma, referenced));
 /* macro versions of hooks are no longer required */
 
 #endif /* _TRACE_HOOK_MM_H */

@@ -1991,6 +1991,7 @@ cfg80211_inform_single_bss_data(struct wiphy *wiphy,
 			}
 		}
 		spin_unlock_bh(&rdev->bss_lock);
+
 		if (!res)
 			return NULL;
 	}
@@ -2110,6 +2111,8 @@ static void cfg80211_parse_mbssid_data(struct wiphy *wiphy,
 
 	for_each_element_id(elem, WLAN_EID_MULTIPLE_BSSID, ie, ielen) {
 		if (elem->datalen < 4)
+			continue;
+		if (elem->data[0] < 1 || (int)elem->data[0] > 8)
 			continue;
 		if (elem->data[0] < 1 || (int)elem->data[0] > 8)
 			continue;
